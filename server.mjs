@@ -11,14 +11,14 @@ const surveyDir = __dirname;
 const questionnaireDir = path.resolve(surveyDir, "..");
 const bundledImageDir = path.join(surveyDir, "public", "images");
 const imageDir = existsSync(bundledImageDir) ? bundledImageDir : path.join(questionnaireDir, "SVs_analysis");
-const dataDir = path.join(surveyDir, "data");
+const dataDir = process.env.DATA_DIR || path.join(surveyDir, "data");
 const publicDir = path.join(surveyDir, "public");
 const responsesJsonl = path.join(dataDir, "responses.jsonl");
 const responsesCsv = path.join(dataDir, "responses.csv");
 const assignmentsJsonl = path.join(dataDir, "assignments.jsonl");
 const countsJson = path.join(dataDir, "image_counts.json");
 const PORT = Number(process.env.PORT || 8787);
-const HOST = process.env.HOST || "127.0.0.1";
+const HOST = process.env.HOST || (process.env.RENDER || process.env.RAILWAY_ENVIRONMENT ? "0.0.0.0" : "127.0.0.1");
 const SAMPLE_SIZE = Number(process.env.SAMPLE_SIZE || 30);
 const TARGET_RATINGS = Number(process.env.TARGET_RATINGS || 3);
 const IMAGE_EXT_RE = /\.(jpg|jpeg|png|gif|bmp|tif|tiff|webp)$/i;
@@ -346,6 +346,15 @@ const server = http.createServer(async (req, res) => {
     }
     if (req.method === "GET" && url.pathname === "/api/stats") {
       await statsResponse(res);
+      return;
+    }
+    if (req.method === "GET" && url.pathname === "/api/health") {
+      jsonResponse(res, 200, {
+        ok: true,
+        images: (await listImages()).length,
+        dataDir,
+        now: new Date().toISOString(),
+      });
       return;
     }
     if (req.method === "GET" && url.pathname === "/api/export/responses.csv") {

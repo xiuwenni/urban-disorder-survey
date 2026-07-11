@@ -1,4 +1,6 @@
 data/
+data_cloud_test/
+tools/
 node_modules/
 .DS_Store
 *.log
