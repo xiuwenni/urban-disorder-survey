@@ -1,0 +1,505 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>街景照片失序程度评分问卷</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f6f7f9;
+        --panel: #ffffff;
+        --text: #1f2937;
+        --muted: #667085;
+        --line: #d9dee7;
+        --accent: #0f766e;
+        --accent-strong: #0b5f59;
+        --warn: #b45309;
+        --danger: #b42318;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family:
+          "Microsoft YaHei",
+          "PingFang SC",
+          system-ui,
+          -apple-system,
+          sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      header,
+      main,
+      footer {
+        width: min(1120px, calc(100% - 32px));
+        margin: 0 auto;
+      }
+
+      header {
+        padding: 28px 0 16px;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: 28px;
+        line-height: 1.25;
+        letter-spacing: 0;
+      }
+
+      .subtitle {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.7;
+      }
+
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 18px;
+        margin: 16px 0;
+      }
+
+      .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: end;
+        justify-content: space-between;
+      }
+
+      label {
+        display: block;
+        font-size: 14px;
+        font-weight: 700;
+        margin-bottom: 6px;
+      }
+
+      input[type="text"] {
+        width: min(360px, 100%);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 10px 12px;
+        font-size: 15px;
+        background: #fff;
+      }
+
+      button {
+        border: 0;
+        border-radius: 6px;
+        padding: 11px 16px;
+        font-size: 15px;
+        font-weight: 700;
+        color: #fff;
+        background: var(--accent);
+        cursor: pointer;
+      }
+
+      button:hover {
+        background: var(--accent-strong);
+      }
+
+      button:disabled {
+        background: #9aa4b2;
+        cursor: not-allowed;
+      }
+
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 12px;
+      }
+
+      .tag {
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 5px 10px;
+        color: var(--muted);
+        background: #fff;
+        font-size: 13px;
+      }
+
+      .scale {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .scale span {
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 8px;
+        text-align: center;
+        font-size: 13px;
+        background: #fbfcfe;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+        margin: 16px 0 24px;
+      }
+
+      .card {
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      .card-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: center;
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .card img {
+        display: block;
+        width: 100%;
+        aspect-ratio: 4 / 3;
+        object-fit: contain;
+        background: #eef1f5;
+      }
+
+      .rating {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 6px;
+        padding: 12px;
+      }
+
+      .rating label {
+        margin: 0;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 9px 0;
+        text-align: center;
+        cursor: pointer;
+        font-weight: 700;
+        background: #fff;
+      }
+
+      .rating input {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .rating label:has(input:checked) {
+        border-color: var(--accent);
+        background: #dff4ef;
+        color: #074d49;
+      }
+
+      .sticky-submit {
+        position: sticky;
+        bottom: 0;
+        background: rgba(246, 247, 249, 0.96);
+        border-top: 1px solid var(--line);
+        padding: 12px 0;
+        backdrop-filter: blur(8px);
+      }
+
+      .submit-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .status {
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .status.error {
+        color: var(--danger);
+      }
+
+      .status.ok {
+        color: var(--accent-strong);
+        font-weight: 700;
+      }
+
+      .admin {
+        display: none;
+      }
+
+      body.admin-mode .admin {
+        display: block;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+      }
+
+      th,
+      td {
+        border-bottom: 1px solid var(--line);
+        padding: 9px;
+        text-align: left;
+      }
+
+      th {
+        background: #eef4f3;
+      }
+
+      a {
+        color: var(--accent);
+        font-weight: 700;
+      }
+
+      footer {
+        padding: 20px 0 32px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      @media (max-width: 760px) {
+        header,
+        main,
+        footer {
+          width: min(100% - 20px, 1120px);
+        }
+
+        h1 {
+          font-size: 23px;
+        }
+
+        .grid {
+          grid-template-columns: 1fr;
+        }
+
+        .scale {
+          grid-template-columns: repeat(2, 1fr);
+        }
+
+        .submit-row {
+          align-items: stretch;
+          flex-direction: column;
+        }
+
+        button {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>街景照片失序程度评分问卷</h1>
+      <p class="subtitle">系统会从图片库中自动抽取 30 张照片。请根据画面中可见的物理失序程度进行评分。</p>
+    </header>
+
+    <main>
+      <section class="panel" id="intro">
+        <div class="toolbar">
+          <div>
+            <label for="participantId">受访者编号（可选）</label>
+            <input id="participantId" type="text" placeholder="例如 S001；不填则匿名" autocomplete="off" />
+          </div>
+          <button id="startBtn" type="button">开始评分</button>
+        </div>
+        <div class="scale" aria-label="评分说明">
+          <span>0 无失序</span>
+          <span>1 极轻微</span>
+          <span>2 轻度</span>
+          <span>3 中度</span>
+          <span>4 较严重</span>
+          <span>5 非常严重</span>
+        </div>
+        <div class="meta">
+          <span class="tag">每次随机 30 张</span>
+          <span class="tag">每张图片目标不少于 3 次评分</span>
+          <span class="tag">评分范围 0-5</span>
+        </div>
+      </section>
+
+      <section class="panel admin" id="adminPanel">
+        <div class="toolbar">
+          <div>
+            <strong>回收数据</strong>
+            <div class="status" id="adminStatus">正在读取统计...</div>
+          </div>
+          <div>
+            <a href="/api/export/responses.csv">下载原始评分 CSV</a>
+            &nbsp;&nbsp;
+            <a href="/api/export/image_summary.csv">下载图片汇总 CSV</a>
+          </div>
+        </div>
+        <table aria-label="回收进度">
+          <tbody id="statsTable"></tbody>
+        </table>
+      </section>
+
+      <section id="survey"></section>
+    </main>
+
+    <div class="sticky-submit" id="submitBar" hidden>
+      <main class="submit-row">
+        <div class="status" id="status">已完成 0 / 30</div>
+        <button id="submitBtn" type="button" disabled>提交评分</button>
+      </main>
+    </div>
+
+    <footer>管理员查看回收进度和导出数据时，可在链接后添加 <code>?admin=1</code>。</footer>
+
+    <script>
+      const startBtn = document.querySelector("#startBtn");
+      const submitBtn = document.querySelector("#submitBtn");
+      const survey = document.querySelector("#survey");
+      const statusEl = document.querySelector("#status");
+      const submitBar = document.querySelector("#submitBar");
+      const participantInput = document.querySelector("#participantId");
+      let assignment = null;
+
+      if (new URLSearchParams(location.search).get("admin") === "1") {
+        document.body.classList.add("admin-mode");
+        loadStats();
+      }
+
+      startBtn.addEventListener("click", async () => {
+        startBtn.disabled = true;
+        startBtn.textContent = "正在抽取...";
+        statusEl.className = "status";
+        try {
+          const response = await fetch("/api/assignment", { cache: "no-store" });
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.error || "抽取失败");
+          assignment = data;
+          renderSurvey(data.images);
+          submitBar.hidden = false;
+          document.querySelector("#intro").scrollIntoView({ behavior: "smooth", block: "start" });
+          updateProgress();
+        } catch (error) {
+          statusEl.textContent = error.message;
+          statusEl.className = "status error";
+          submitBar.hidden = false;
+          startBtn.disabled = false;
+          startBtn.textContent = "重新开始";
+        }
+      });
+
+      submitBtn.addEventListener("click", async () => {
+        if (!assignment) return;
+        const answers = assignment.images.map((image) => {
+          const checked = document.querySelector(`input[name="score-${image.order}"]:checked`);
+          return {
+            imageFile: image.file,
+            imageId: image.imageId,
+            order: image.order,
+            score: checked ? Number(checked.value) : null,
+          };
+        });
+        if (answers.some((answer) => answer.score === null)) {
+          updateProgress();
+          return;
+        }
+        submitBtn.disabled = true;
+        submitBtn.textContent = "正在提交...";
+        try {
+          const response = await fetch("/api/submit", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              assignmentId: assignment.assignmentId,
+              participantId: participantInput.value.trim(),
+              answers,
+            }),
+          });
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.error || "提交失败");
+          statusEl.textContent = "提交成功，感谢参与。";
+          statusEl.className = "status ok";
+          document.querySelectorAll("input").forEach((input) => (input.disabled = true));
+          startBtn.disabled = true;
+          submitBtn.hidden = true;
+          if (document.body.classList.contains("admin-mode")) loadStats();
+        } catch (error) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "提交评分";
+          statusEl.textContent = error.message;
+          statusEl.className = "status error";
+        }
+      });
+
+      function renderSurvey(images) {
+        survey.innerHTML = `<div class="grid">${images.map(renderCard).join("")}</div>`;
+        survey.querySelectorAll("input[type='radio']").forEach((input) => {
+          input.addEventListener("change", updateProgress);
+        });
+      }
+
+      function renderCard(image) {
+        const buttons = [0, 1, 2, 3, 4, 5]
+          .map(
+            (score) => `
+              <label>
+                <input type="radio" name="score-${image.order}" value="${score}" />
+                ${score}
+              </label>
+            `,
+          )
+          .join("");
+        return `
+          <article class="card">
+            <div class="card-head">
+              <strong>第 ${image.order} 张</strong>
+              <span>${image.imageId}</span>
+            </div>
+            <img src="${image.url}" alt="待评分街景照片 ${image.imageId}" loading="lazy" />
+            <div class="rating" role="radiogroup" aria-label="${image.imageId} 评分">
+              ${buttons}
+            </div>
+          </article>
+        `;
+      }
+
+      function updateProgress() {
+        if (!assignment) return;
+        const done = assignment.images.filter((image) =>
+          document.querySelector(`input[name="score-${image.order}"]:checked`),
+        ).length;
+        statusEl.textContent = `已完成 ${done} / ${assignment.images.length}`;
+        statusEl.className = "status";
+        submitBtn.disabled = done !== assignment.images.length;
+      }
+
+      async function loadStats() {
+        const status = document.querySelector("#adminStatus");
+        const table = document.querySelector("#statsTable");
+        try {
+          const response = await fetch("/api/stats", { cache: "no-store" });
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.error || "读取失败");
+          status.textContent = `已回收 ${data.totalResponses} 条评分，已有 ${data.completedImages} / ${data.totalImages} 张达到至少 ${data.targetRatings} 次评分。`;
+          table.innerHTML = `
+            <tr><th>图片总数</th><td>${data.totalImages}</td></tr>
+            <tr><th>总评分条数</th><td>${data.totalResponses}</td></tr>
+            <tr><th>达标图片数</th><td>${data.completedImages}</td></tr>
+            <tr><th>未达标图片数</th><td>${data.remainingImages}</td></tr>
+          `;
+        } catch (error) {
+          status.textContent = error.message;
+          status.className = "status error";
+        }
+      }
+    </script>
+  </body>
+</html>
